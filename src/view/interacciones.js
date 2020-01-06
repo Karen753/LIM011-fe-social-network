@@ -1,4 +1,5 @@
-import { añadirPost, outUser} from "../controladorfirebase.js";
+import { añadirPost, eliminarPost } from "../controladorfirebase.js";
+
 export const INTERACCIONES = () => {
     const db = firebase.firestore();
   
@@ -45,32 +46,24 @@ export const INTERACCIONES = () => {
     db.collection('publicaciones').onSnapshot((querySnapshot) => {
       listaPublicaciones.innerHTML = '';
       querySnapshot.forEach((doc) => {
-        tabla.innerHTML += `
+        listaPublicaciones.innerHTML += `
         <div id='post-publicado'>
       <div id='caja-post'>
         <div class="text">${doc.id}</div></br>
         <div class="text">${doc.data().post}</div><br>
-    </div>
-     <button class='btn-eliminar' id='btn-eliminar-${doc.id}'>ELIMINAR</button>
+    <div class="btn-post">
+    <span id="btn-eliminar-${doc.id}"><img src="imagenes/bannerloguito.png" /></span>
+    </div>`
+    })}
+    // BORRAR PUBLICACIONES
+    document.querySelector(`#btn-eliminar-${doc.id}`).addEventListener('click' , () =>{
+      alert('si funciona el boton')
+   
+    })
+    );
     
-  </div>
-`
-      })
-      /* // BORRAR PUBLICACIONES
-     document.querySelector(`#btn-eliminar-${doc.id}`).addEventListener('click' , () =>{
-      db.collection('piblicaciones').doc(doc).delete().then(function() {
-        console.log("Document successfully deleted!");
-    }).catch(function(error) {
-        console.error("Error removing document: ", error);
-    });
-     }) 
-   */
-    })
-    const outSesion = divElem.querySelector('#cerrar-sesion');
-    outSesion.addEventListener('click', (e) => {
-      e.preventDefault();
-     outUser();
-    })
+       
+  
   
     return divElem;
 };
