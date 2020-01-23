@@ -1,4 +1,6 @@
-import { logear, logInGoogle, logInFacebook, observador } from '../controladorfirebase.js'
+import {
+  logear, logInGoogle, logInFacebook, observador,
+} from '../controladorfirebase.js';
 
 
 export const HOME = () => {
@@ -25,45 +27,36 @@ export const HOME = () => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     logear(email, password)
-   .then(function() {
-    document.getElementById('email').value = '';
-    document.getElementById('password').value = '';
-    const url = window.location.href;
-    window.location.href = url + '#/interacciones';
-})
-    .catch(function (error) {
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      alert('Debes ingresar un correo electrónico válido' + '\n Verifique su contraseña')
-    });
+      .then(() => {
+        document.getElementById('email').value = '';
+        document.getElementById('password').value = '';
+        const url = window.location.href;
+        window.location.href = `${url}#/interacciones`;
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        // eslint-disable-next-line no-alert
+        alert('Debes ingresar un correo electrónico válido' + '\n Verifique su contraseña');
+      });
   });
-      
-
-
-
-
-
-
 
 
   // click google
-  divElem.querySelector('#google').addEventListener('click' , (e) => {
-    e.preventDefault()
-    
-   logInGoogle();
+  divElem.querySelector('#google').addEventListener('click', (e) => {
+    e.preventDefault();
+
+    logInGoogle();
   });
   // click facebbok
-  divElem.querySelector('#facebook').addEventListener('click' , (e) => {
-    e.preventDefault()
-    
-   logInFacebook();
+  divElem.querySelector('#facebook').addEventListener('click', (e) => {
+    e.preventDefault();
+
+    logInFacebook();
   });
 
-observador();
+  observador();
 
 
-
-
-return divElem; 
-
-  };
+  return divElem;
+};
