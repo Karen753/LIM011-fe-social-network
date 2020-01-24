@@ -1,69 +1,125 @@
-import { añadirPost, eliminarPost } from "../controladorfirebase.js";
+import {
+  outUser, postUser, showPost, DeletePost, editPost, currentUser,
+} from '../firebase/controladorfirebase.js';
 
-export const INTERACCIONES = () => {
-    const db = firebase.firestore();
+export const INTERACCIONES = (user) => {
+  const viewCatalogo = ` 
+   <body>
+     <header>
+       <nav>
+        <p>FOOD BOOK</p>
+        <menu id="cerrarSesion">Cerrar sesión</i>
+       </nav>
+     </header>
   
-    const viewHome = `
-    <header>
-    <nav>
-     <p>Usuario</p>
-     <h1 class="loguito">FOODBOOK</h1>
-     <button id='cerrar-sesion'>Cerrar Sesión</button>
-		</nav>
-    </header>
+     
+     <main class="publicaciones">
+          <section class="seccion-perfil">
+            <img class="portada" src="../imagenes/bannerloguito.png" alt="foto de portada">
+            <div class="info-user">
+               <img id="fotoPerfil" class="foto-perfil" src="${user.photoURL}" alt="foto de perfil">
+               <p class="fondo" id="nombreUsuarioDestok" >${user.name}</p>
+            </div>
+          </section>
     
-  
-    <section>
-    <div id="contenido-post">
-          <textarea id="texto" placeholder="¿Que estas pensando"cols="30" rows="10"></textarea>
-          <div class="compartir">
-              <button class="publicar" id="publicar">PUBLICAR</button>
+          <section class="seccion-publicacion">
+            <form class="form">
+              <textarea class="mensaje" id="texto" placeholder="¿Qué quieres compartir?" cols="30" rows="4"></textarea>
+              <div class="btn-enviar">
+                <button class="btn-compartir" id="compartir">Compartir</button>
+              </div>
+               <select class="btn-tipopost" id="tipoPost">
+                 <option value='publico'>Público</option>
+                 <option value='privado'>Privado</option>
+               </select>
+            </form>
+          <div id="publicPost" >
           </div>
-          </div> 
-    
-     <div id='tabla'></div>
-    
-    </section> `;
-  
-    const divElem = document.createElement('div');
-    divElem.innerHTML = viewHome;
+          </section>
+     </main>
+  </body> `;
 
-  //PUBLICAR
-    const publicar = divElem.querySelector('#publicar');
+  const divElement = document.createElement('div');
+  divElement.innerHTML = viewCatalogo;
 
-    publicar.addEventListener('click', (e) => {
-      e.preventDefault()
-      const textarea = divElem.querySelector('#texto').value;
-      console.log(textarea);
-      añadirPost(textarea);
-      divElem.querySelector('#texto').value = '';
-  
-    });
-  
-  //LISTA DE PUBLICACIONES
-    const listaPublicaciones = divElem.querySelector('#tabla');
-
-    db.collection('publicaciones').onSnapshot((querySnapshot) => {
-      listaPublicaciones.innerHTML = '';
-      querySnapshot.forEach((doc) => {
-        listaPublicaciones.innerHTML += `
-        <div id='post-publicado'>
-      <div id='caja-post'>
-        <div class="text">${doc.id}</div></br>
-        <div class="text">${doc.data().post}</div><br>
-    <div class="btn-post">
-    <span id="btn-eliminar-${doc.id}"><img src="imagenes/bannerloguito.png" /></span>
-    </div>`
-    })}
-    // BORRAR PUBLICACIONES
-    document.querySelector(`#btn-eliminar-${doc.id}`).addEventListener('click' , () =>{
-      alert('si funciona el boton')
-   
+  // PUBLICAR
+  const publicar = divElement.querySelector('#compartir');
+  publicar.addEventListener('click', (e) => {
+    e.preventDefault();
+    const textarea = divElement.querySelector('#texto').value;
+    const tipoPost = divElement.querySelector('#tipoPost').value;
+    const datausuario = currentUser();
+    postUser(textarea, tipoPost, datausuario).then(() => {
+      divElement.querySelector('#texto').value = '';
     })
-    );
-    
-       
-  
-  
-    return divElem;
+      .catch(() => {
+      });
+  });
+  // LISTAR PUBLICACIONES
+  const publicPost = divElement.querySelector('#publicPost');
+  const fnParaConsolearLaData = (data) => {
+    publicPost.innerHTML = '';
+    data.forEach((doc) => {
+      const containerPost = document.createElement('div');
+      containerPost.classList.add('post');
+      containerPost.innerHTML = `
+       <section class="form">
+           <div class="cabecera-post">
+             <p class="user-post">Publicado por ${doc.name}   ${doc.fecha} </p>
+             <span id="btn-delete-${doc.id}"><img class="btn-eliminar" src="./imagenes/eliminar.png"></span>
+           </div>
+           <div id="contPostOriginal">
+             <p id="post" class="message-public">${doc.contenido}</p>
+           </div>
+           <span id="btn-update-${doc.id}"><img class="btn-editar" src="./imagenes/editar.png"></span>
+           <div id='contenedorEditar' class='hide'>
+             <textarea id='postEditar'  cols="30" rows="10"></textarea>
+             <span id="btn-update-save-${doc.id}"><img class="btn-guardar" src="./imagenes/guardar.png"></span>
+           </div>
+       </section>
+             `;
+
+      // eliminar post
+      publicPost.appendChild(containerPost);
+
+      const eliminar = containerPost.querySelector(`#btn-delete-${doc.id}`);
+      eliminar.addEventListener('click', (e) => {
+        e.preventDefault();
+        DeletePost(doc.id);
+      });
+      // EDITAR POST
+      const contPostOriginal = containerPost.querySelector('#contPostOriginal');
+      const contEditar = containerPost.querySelector('#contenedorEditar');
+      const editar = containerPost.querySelector(`#btn-update-${doc.id}`);
+
+      editar.addEventListener('click', (e) => {
+        e.preventDefault();
+        contPostOriginal.classList.add('hide');
+        contEditar.classList.remove('hide');
+        containerPost.querySelector('#postEditar').value = doc.contenido;
+
+
+        const guardar = containerPost.querySelector(`#btn-update-save-${doc.id}`);
+
+        guardar.addEventListener('click', () => {
+          e.preventDefault();
+          const textoEditado = containerPost.querySelector('#postEditar').value;
+          editPost(doc.id, textoEditado);
+        });
+      });
+    });
+  };
+  showPost(fnParaConsolearLaData);
+
+  // cerrar sesion
+  const outSesion = divElement.querySelector('#cerrarSesion');
+  outSesion.addEventListener('click', (e) => {
+    e.preventDefault();
+    outUser().then(() => {
+      window.location.hash = '#/';
+    });
+  });
+
+
+  return divElement;
 };
