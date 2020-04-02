@@ -37,7 +37,7 @@ const fixtureData = {
     },
   },
 };
-
+//inicializando el mock falso
 global.firebase = new MockFirebase(fixtureData, { isNaiveSnapshotListenerEnabled: true });
 
 const edipost = {
